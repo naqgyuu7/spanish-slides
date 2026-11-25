@@ -67,6 +67,36 @@ function loadHistory() {
   };
 }
 
+async function getAvailableGeminiModels() {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models?pageSize=100&key=${GEMINI_API_KEY}`
+  );
+  if (!res.ok) throw new Error(`ListModels Error ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  const models = (data.models || [])
+    .filter(m =>
+      m.supportedGenerationMethods?.includes('generateContent') &&
+      /^models\/gemini-/i.test(m.name) &&
+      !/(embedding|imagen|veo|tts|audio|image|live|robotics|computer-use|gemma|learnlm|aqa)/i.test(m.name)
+    )
+    .map(m => m.name);
+
+  const score = (name) => {
+    let s = 0;
+    const verMatch = name.match(/gemini-(\d+)(?:\.(\d+))?/i);
+    if (verMatch) {
+      s += parseInt(verMatch[1], 10) * 1000 + parseInt(verMatch[2] || '0', 10) * 100;
+    }
+    if (/flash/i.test(name)) s += 50;
+    if (/lite/i.test(name)) s -= 10;
+    if (/preview|exp/i.test(name)) s -= 5;
+    if (/-\d{3}$|-\d{2}-\d{4}$/.test(name)) s -= 2;
+    return s;
+  };
+
+  return models.sort((a, b) => score(b) - score(a));
+}
+
 async function generateLessonWithGemini(usedTopics) {
   const prompt = `أنت معلم لغة إسبانية محترف لحساب تيك توك عربي (${WATERMARK}).
 اختر موضوعاً تعليمياً جديداً وعملياً للمبتدئين (A1-A2) لم يُذكر في هذه القائمة السابقة:
@@ -96,26 +126,50 @@ ${usedTopics.map((t, i) => `${i + 1}. ${t}`).join('\n')}
 - الشريحة 7: سؤال تفاعلي للجمهور لاختيار الدرس القادم بين خيارين (1) و (2)، ثم دعوة لحفظ الدرس وزيارة المكتبة الشاملة لتعلم اللغات (الرابط في البايو 🔗).
 - حافظ على طول كل شريحة متوسطاً ومقروءاً بوضوح (8 إلى 12 سطراً كحد أقصى).`;
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0.9 },
-      }),
-    }
-  );
-
-  if (!res.ok) throw new Error(`Gemini API Error ${res.status}: ${await res.text()}`);
-  const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  const parsed = JSON.parse(text);
-  if (!Array.isArray(parsed.slides) || parsed.slides.length < 5) {
-    throw new Error('Gemini returned invalid slides array');
+  const candidates = await getAvailableGeminiModels();
+  console.log('Available Gemini models:', candidates.slice(0, 8));
+  if (!candidates.length) {
+    throw new Error('No Gemini models available for this API key');
   }
-  return parsed;
+
+  let lastError = '';
+  for (const modelName of candidates) {
+    console.log(`Trying Gemini model: ${modelName}`);
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: 'application/json', temperature: 0.9 },
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      lastError = `${modelName} -> ${res.status}: ${await res.text()}`;
+      console.warn(`Skipping ${lastError}`);
+      continue;
+    }
+
+    try {
+      const data = await res.json();
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const cleanJson = rawText.replace(/^```(?:json)?\s*|\s*```$/g, '').trim();
+      const parsed = JSON.parse(cleanJson);
+      if (Array.isArray(parsed.slides) && parsed.slides.length >= 5) {
+        console.log(`Lesson generated successfully with ${modelName}`);
+        return parsed;
+      }
+      lastError = `${modelName} returned invalid slides array`;
+    } catch (err) {
+      lastError = `${modelName} JSON parse error: ${err.message}`;
+      console.warn(`Skipping ${lastError}`);
+    }
+  }
+
+  throw new Error(`All Gemini models failed. Last error: ${lastError}`);
 }
 
 function buildRenderHtml(slides, theme) {
@@ -256,6 +310,11 @@ function gitPush(pathsToAdd, message) {
   execSync('git config user.name "github-actions[bot]"');
   execSync('git config user.email "github-actions[bot]@users.noreply.github.com"');
   execSync(`git add ${pathsToAdd.join(' ')}`);
+  const status = execSync('git status --porcelain').toString().trim();
+  if (!status) {
+    console.log('No git changes to commit.');
+    return;
+  }
   execSync(`git commit -m "${message}"`);
   execSync('git push');
 }
@@ -350,4 +409,3 @@ main().catch(err => {
   console.error(err);
   process.exit(1);
 });
-  
