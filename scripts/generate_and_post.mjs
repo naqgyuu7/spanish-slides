@@ -381,7 +381,7 @@ async function sendDraftToTikTok(accessToken, title, description, imageUrls) {
 
 async function main() {
   const history = loadHistory();
-  const lessonId = `Lesson_${String(history.nextNumber).padStart(2, '0')}`;
+const lessonId = `Lesson_${String(history.nextNumber).padStart(2, '0')}_${Date.now()}`;
   const theme = APPROVED_THEMES[history.themeIndex % APPROVED_THEMES.length];
 
   console.log(`Generating ${lessonId} with theme: ${theme}`);
