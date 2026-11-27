@@ -14,7 +14,7 @@ const GITHUB_PAGES_BASE = 'https://naqgyuu7.github.io/spanish-slides';
 const WATERMARK = '@mr.spanish1229';
 const HASHTAGS = '#learnspanish #تعلم_اللغة_الاسبانية #تعلم_الاسبانية_للمبتدئين #تعلم_الاسبانية #spain🇪🇸';
 
-// الـ 9 خلفيات المعتمدة فقط من صورك (بالتناوب بين الفاتح والداكن — بدون مسطّر رمادي)
+// الـ 9 خلفيات المعتمدة فقط (بالتناوب بين الفاتح والداكن — بدون مسطّر رمادي)
 const APPROVED_THEMES = [
   'easynotes',   // أزرق مذكرة
   'dark-grid',   // داكن شبكة
@@ -140,12 +140,12 @@ ${allUsed.map((t, i) => `${i + 1}. ${t}`).join('\n')}
 }
 
 قواعد صارمة لتطابق أسلوب وشكل الشرائح الـ 6 (لا تكتب شريحة سابعة لأن شريحة الخاتمة تُضاف تلقائياً):
-- استخدم فقط التظليل الأصفر ==...== والتظليل السماوي ~~...~~ (لا تستخدم التظليل الوردي نهائياً).
+- استخدم فقط التظليل الأصفر ==...== للعناوين والتظليل السماوي ~~...~~ للكلمات المفتاحية القصيرة فقط (لا تستخدم التظليل الوردي نهائياً، ولا تظلّل جملاً طويلة داخل فقرة واحدة).
 - اترك دائماً مسافة واضحة بين حرف العطف العربي (و) وأي كلمة إسبانية أو قوس (مثال: Este و Ese وليس Este وEse).
 - الشريحة 1 (الغلاف + الهوك):
   السطر الأول بالضبط: ## ==تعلم اللغة الإسبانية 🇪🇸==
   ثم سطر فارغ
-  ثم سطر الهوك يبدأ بـ # مثل: "# أكبر خطأ يقع فيه 90% من مبتدئي الإسبانية! الفرق الكامل بين (...) حتى لا تخطئ بينهما أبداً 🧠🔥" أو "# كيف تقول (...) بالإسبانية بدون لخبطة؟ الدليل الكامل للمبتدئين 👉🔥"
+  ثم سطر الهوك يبدأ بـ # وبدون أي تظليل == أو ~~ بداخله (ضع الكلمات الإسبانية بين أقواس فقط)، مثل: "# أكبر خطأ يقع فيه 90% من مبتدئي الإسبانية! الفرق الكامل بين (Ser) و (Estar) حتى لا تخطئ بينهما أبداً 🧠🔥"
   ثم سطر فارغ
   ثم السطر الأخير بالضبط: ~~اسحب لليسار لتفهم القاعدة بسهولة 👈~~
 - الشريحة 2:
@@ -161,7 +161,7 @@ ${allUsed.map((t, i) => `${i + 1}. ${t}`).join('\n')}
   وتتضمن نقطتين مرقّمتين (1. و 2.) مع جملتين إسبانيتين لكل نقطة، وبنفس التنسيق (الجملة الإسبانية ثم "الترجمة:" ثم "النطق: (...).").
 - الشريحة 5:
   تبدأ بـ ==🤯 رابعاً: السرّ الذي يخطئ فيه المبتدئون (...):==
-  شرح مختصر للخطأ الشائع، ثم مثالان مرقّمان (1. و 2.) بالترجمة والنطق، ثم "3. قاعدة ذهبية:" توضّح الصواب والخطأ باستخدام ~~...~~.
+  شرح مختصر للخطأ الشائع، ثم مثالان مرقّمان (1. و 2.) بالترجمة والنطق، ثم "3. قاعدة ذهبية:" مختصرة وواضحة تظلّل فيها الكلمة الصحيحة فقط بـ ~~...~~.
 - الشريحة 6:
   تبدأ بـ ==🗣️ خامساً: محادثة [الموقف الواقعي] تطبق الدرس (Diálogo real):==
   محادثة واقعية من 4 أدوار قصيرة (مثل أنت / البائع أو أنت / صديقك)، لكل دور:
@@ -229,19 +229,19 @@ function buildRenderHtml(slides, theme) {
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Cairo', 'Tajawal', sans-serif; }
   ${THEMES_CSS}
-  .hl-yellow { background: #f6ec7e; padding: 1px 6px; border-radius: 4px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
-  .is-dark-theme .hl-yellow { background: rgba(250,204,21,.34); color: #fef08a; }
-  .hl-cyan { background: #c2f2e4; padding: 1px 6px; border-radius: 4px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
-  .is-dark-theme .hl-cyan { background: rgba(45,212,191,.30); color: #99f6e4; }
-  .hl-pink { background: #fecdd3; padding: 1px 6px; border-radius: 4px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
-  .is-dark-theme .hl-pink { background: rgba(251,113,133,.32); color: #fecdd3; }
-  .ltr-run { direction: ltr; unicode-bidi: isolate; display: inline; }
-  .slide-canvas-inner { width: 540px; height: 675px; padding: 28px 28px 20px 28px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; font-size: 21px; line-height: 1.58; font-weight: 700; word-wrap: break-word; }
-  .slide-body-content { display: flex; flex-direction: column; gap: 4px; }
-  .slide-cover-mode .slide-body-content { margin: auto 0; align-items: center; text-align: center; gap: 18px; }
-  .slide-line-title { text-align: center; font-weight: 800; line-height: 1.48; }
-  .slide-line-cover { text-align: center; font-weight: 800; line-height: 1.38; margin-bottom: 6px; }
-  .slide-line-spacer { height: 0.55em; }
+  .hl-yellow { background: linear-gradient(180deg, transparent 18%, #f6ec7e 18%, #f6ec7e 86%, transparent 86%); padding: 0 5px; margin: 0 2px; border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .is-dark-theme .hl-yellow { background: linear-gradient(180deg, transparent 18%, rgba(250,204,21,.34) 18%, rgba(250,204,21,.34) 86%, transparent 86%); color: #fef08a; }
+  .hl-cyan { background: linear-gradient(180deg, transparent 18%, #c2f2e4 18%, #c2f2e4 86%, transparent 86%); padding: 0 5px; margin: 0 2px; border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .is-dark-theme .hl-cyan { background: linear-gradient(180deg, transparent 18%, rgba(45,212,191,.30) 18%, rgba(45,212,191,.30) 86%, transparent 86%); color: #99f6e4; }
+  .hl-pink { background: linear-gradient(180deg, transparent 18%, #fecdd3 18%, #fecdd3 86%, transparent 86%); padding: 0 5px; margin: 0 2px; border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .is-dark-theme .hl-pink { background: linear-gradient(180deg, transparent 18%, rgba(251,113,133,.32) 18%, rgba(251,113,133,.32) 86%, transparent 86%); color: #fecdd3; }
+  .ltr-run { direction: ltr; unicode-bidi: isolate; display: inline; padding: 0 2px; }
+  .slide-canvas-inner { width: 540px; height: 675px; padding: 28px 28px 20px 28px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; font-size: 21px; line-height: 1.7; font-weight: 700; word-wrap: break-word; }
+  .slide-body-content { display: flex; flex-direction: column; gap: 6px; }
+  .slide-cover-mode .slide-body-content { margin: auto 0; align-items: center; text-align: center; gap: 20px; }
+  .slide-line-title { text-align: center; font-weight: 800; line-height: 1.62; }
+  .slide-line-cover { text-align: center; font-weight: 800; line-height: 1.45; margin-bottom: 6px; }
+  .slide-line-spacer { height: 0.5em; }
   .slide-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; margin-top: auto; opacity: 0.65; font-size: 14px; font-weight: 700; }
 </style>
 </head>
@@ -321,7 +321,7 @@ function buildRenderHtml(slides, theme) {
     while (body.scrollHeight > maxAllowedH && currentSize > 12) {
       currentSize = Math.round((currentSize - 0.5) * 10) / 10;
       el.style.fontSize = currentSize + 'px';
-      el.style.lineHeight = currentSize <= 16 ? '1.48' : '1.58';
+      el.style.lineHeight = currentSize <= 16 ? '1.6' : '1.7';
       el.querySelectorAll('.slide-line-cover').forEach(t => t.style.fontSize = Math.round(currentSize * 1.9) + 'px');
       el.querySelectorAll('.slide-line-title').forEach(t => t.style.fontSize = Math.round(currentSize * (isCover ? 1.28 : 1.1)) + 'px');
     }
@@ -410,49 +410,4 @@ async function sendDraftToTikTok(accessToken, title, description, imageUrls) {
         title: title.slice(0, 88),
         description: `${description}\n\n${HASHTAGS}`,
       },
-      source_info: {
-        source: 'PULL_FROM_URL',
-        photo_cover_index: 0,
-        photo_images: imageUrls,
-      },
-      post_mode: 'MEDIA_UPLOAD',
-      media_type: 'PHOTO',
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok || data.error?.code !== 'ok') {
-    throw new Error(`TikTok Publish Failed: ${JSON.stringify(data)}`);
-  }
-  console.log('TikTok Draft Sent Successfully:', data);
-}
-
-async function main() {
-  const history = loadHistory();
-  const lessonId = `Lesson_${String(history.nextNumber).padStart(2, '0')}_${Date.now()}`;
-  const theme = APPROVED_THEMES[history.themeIndex % APPROVED_THEMES.length];
-
-  console.log(`Generating ${lessonId} with theme: ${theme}`);
-  const lesson = await generateLessonWithGemini(history.usedTopics);
-
-  const outDir = path.join('slides', lessonId);
-  const files = await renderSlidesToJpg(lesson.slides, theme, outDir);
-
-  gitPush([outDir], `Add slides for ${lessonId}`);
-
-  const imageUrls = files.map(f => `${GITHUB_PAGES_BASE}/slides/${lessonId}/${f}`);
-  await waitForGitHubPages(imageUrls[0]);
-
-  const accessToken = await refreshTikTokToken();
-  await sendDraftToTikTok(accessToken, lesson.title, lesson.description, imageUrls);
-
-  history.nextNumber += 1;
-  history.themeIndex = (history.themeIndex + 1) % APPROVED_THEMES.length;
-  history.usedTopics.push(lesson.topic);
-  fs.writeFileSync(HISTORY_PATH, JSON.stringify(history, null, 2), 'utf8');
-  gitPush([HISTORY_PATH], `Mark ${lessonId} as sent`);
-}
-
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+     
