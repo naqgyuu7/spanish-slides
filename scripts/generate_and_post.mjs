@@ -14,17 +14,16 @@ const GITHUB_PAGES_BASE = 'https://naqgyuu7.github.io/spanish-slides';
 const WATERMARK = '@mr.spanish1229';
 const HASHTAGS = '#learnspanish #تعلم_اللغة_الاسبانية #تعلم_الاسبانية_للمبتدئين #تعلم_الاسبانية #spain🇪🇸';
 
-// الـ 9 خلفيات المعتمدة فقط (بالتناوب بين الفاتح والداكن — بدون مسطّر رمادي)
 const APPROVED_THEMES = [
-  'easynotes',   // أزرق مذكرة
-  'dark-grid',   // داكن شبكة
-  'lined-cream', // مسطّر كريمي
-  'dark-dots',   // داكن منقّط
-  'dots-gray',   // نقاط رمادية
-  'dark-check',  // داكن مربعات
-  'lined-blue',  // مسطّر أزرق
-  'dark',        // داكن صافي
-  'paper-warm',  // ورق رمادي
+  'easynotes',
+  'dark-grid',
+  'lined-cream',
+  'dark-dots',
+  'dots-gray',
+  'dark-check',
+  'lined-blue',
+  'dark',
+  'paper-warm',
 ];
 
 const THEMES_CSS = `
@@ -199,7 +198,7 @@ ${allUsed.map((t, i) => `${i + 1}. ${t}`).join('\n')}
     try {
       const data = await res.json();
       const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      const cleanJson = rawText.replace(/^```(?:json)?\s*|\s*```$/g, '').trim();
+      const cleanJson = rawText.replace(/^\u0060{3}(?:json)?\s*|\s*\u0060{3}$/g, '').trim();
       const parsed = JSON.parse(cleanJson);
       if (Array.isArray(parsed.slides) && parsed.slides.length >= 5) {
         const contentSlides = (parsed.slides.length >= 7 ? parsed.slides.slice(0, 6) : parsed.slides)
@@ -410,4 +409,49 @@ async function sendDraftToTikTok(accessToken, title, description, imageUrls) {
         title: title.slice(0, 88),
         description: `${description}\n\n${HASHTAGS}`,
       },
-     
+      source_info: {
+        source: 'PULL_FROM_URL',
+        photo_cover_index: 0,
+        photo_images: imageUrls,
+      },
+      post_mode: 'MEDIA_UPLOAD',
+      media_type: 'PHOTO',
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok || data.error?.code !== 'ok') {
+    throw new Error(`TikTok Publish Failed: ${JSON.stringify(data)}`);
+  }
+  console.log('TikTok Draft Sent Successfully:', data);
+}
+
+async function main() {
+  const history = loadHistory();
+  const lessonId = `Lesson_${String(history.nextNumber).padStart(2, '0')}_${Date.now()}`;
+  const theme = APPROVED_THEMES[history.themeIndex % APPROVED_THEMES.length];
+
+  console.log(`Generating ${lessonId} with theme: ${theme}`);
+  const lesson = await generateLessonWithGemini(history.usedTopics);
+
+  const outDir = path.join('slides', lessonId);
+  const files = await renderSlidesToJpg(lesson.slides, theme, outDir);
+
+  gitPush([outDir], `Add slides for ${lessonId}`);
+
+  const imageUrls = files.map(f => `${GITHUB_PAGES_BASE}/slides/${lessonId}/${f}`);
+  await waitForGitHubPages(imageUrls[0]);
+
+  const accessToken = await refreshTikTokToken();
+  await sendDraftToTikTok(accessToken, lesson.title, lesson.description, imageUrls);
+
+  history.nextNumber += 1;
+  history.themeIndex = (history.themeIndex + 1) % APPROVED_THEMES.length;
+  history.usedTopics.push(lesson.topic);
+  fs.writeFileSync(HISTORY_PATH, JSON.stringify(history, null, 2), 'utf8');
+  gitPush([HISTORY_PATH], `Mark ${lessonId} as sent`);
+}
+
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
